@@ -24,75 +24,95 @@
       background: radial-gradient(ellipse at center, #1a1000 0%, #000 70%);
       color:var(--ink);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><defs><linearGradient id="keyGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ffd86c"/><stop offset="100%" style="stop-color:%23f5c340"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(%23glow)"><ellipse cx="35" cy="12" rx="10" ry="8" fill="url(%23keyGrad)" stroke="%23d4a017" stroke-width="1.5"/><ellipse cx="35" cy="12" rx="5" ry="4" fill="%23000" opacity="0.3"/><rect x="12" y="10" width="25" height="4" fill="url(%23keyGrad)" stroke="%23d4a017" stroke-width="1"/><rect x="12" y="16" width="8" height="3" fill="url(%23keyGrad)" stroke="%23d4a017" stroke-width="0.8"/><rect x="12" y="20" width="12" height="3" fill="url(%23keyGrad)" stroke="%23d4a017" stroke-width="0.8"/><rect x="12" y="24" width="6" height="3" fill="url(%23keyGrad)" stroke="%23d4a017" stroke-width="0.8"/><text x="19" y="12" font-family="Arial" font-size="2.5" fill="%23000" opacity="0.8">GENKEY</text></g></svg>') 8 8, auto;
+      overflow-x: hidden;
+      cursor: url('cursor.png'), auto;
     }
 
-    /* LOCK SCREEN */
-    #lockScreen{
-      position:fixed;
-      inset:0;
-      display:grid;
-      place-items:center;
-      background: radial-gradient(800px circle at 50% 45%, rgba(245,195,64,0.08) 0%, #000 60%);
-      overflow: hidden;
-    }
-    
-    #lockScreen::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: 
-        radial-gradient(circle at 20% 80%, rgba(245,195,64,0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(245,195,64,0.03) 0%, transparent 50%);
-      animation: shimmer 8s ease-in-out infinite alternate;
-    }
-    
-    @keyframes shimmer {
-      0% { opacity: 0.3; }
-      100% { opacity: 0.8; }
+    /* Custom Cursor - Hidden since using PNG cursor */
+    #cursor {
+      display: none;
     }
 
-    .lockWrap{
-      display:grid;
-      place-items:center;
-      gap:24px;
-      text-align:center;
+    /* Mouse Trail */
+    .trail-particle {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background: radial-gradient(circle, var(--gold2), var(--gold));
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      animation: trailFade 1s ease-out forwards;
+    }
+
+    @keyframes trailFade {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0);
+      }
+    }
+
+    /* Floating Particles */
+    #particleContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
       z-index: 1;
     }
-    
-    .hint{
-      color:var(--muted);
-      font-size:16px;
-      text-shadow: 0 0 10px rgba(245,195,64,0.3);
-      animation: pulse 2s ease-in-out infinite;
+
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: float 8s infinite linear;
+      box-shadow: 0 0 10px var(--ring2);
     }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 0.7; }
-      50% { opacity: 1; }
-    }
-    
-    .progressText{
-      font-variant-numeric:tabular-nums;
-      color:var(--gold);
-      font-size:18px;
-      font-weight:700;
-      text-shadow: 0 0 15px var(--ring);
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) translateX(0) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.8;
+      }
+      90% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-10px) translateX(100px) rotate(360deg);
+        opacity: 0;
+      }
     }
 
     /* Enhanced Lock SVG */
     .lockSvg{
-      width:min(35vw,280px);
+      width:min(40vw,320px);
       height:auto;
       display:block;
       filter: drop-shadow(0 0 30px var(--ring2)) drop-shadow(0 0 60px var(--ring));
       cursor:pointer;
       transition: transform 0.3s ease, filter 0.3s ease;
+      user-select: none;
     }
     
-    .lockSvg:hover {
+    .lockSvg:hover:not(.unlocking) {
       transform: scale(1.05);
       filter: drop-shadow(0 0 40px var(--ring)) drop-shadow(0 0 80px var(--ring2));
+    }
+    
+    .lockSvg.unlocking {
+      pointer-events: none;
     }
     
     /* Progress ring with gradient */
@@ -125,7 +145,7 @@
       stroke: #8b5a00;
       stroke-width:4;
       transform-origin:50% 25%;
-      transition: transform .8s cubic-bezier(.2,.7,.2,1.4);
+      transition: transform 1.2s cubic-bezier(.2,.7,.2,1.4);
       filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
     }
     
@@ -133,6 +153,8 @@
       fill: #1a1100;
       stroke: #5d3e00;
       stroke-width:2;
+      transform-origin:50% 25%;
+      transition: transform 1.2s cubic-bezier(.2,.7,.2,1.4);
     }
     
     /* Keyhole with glow effect */
@@ -147,6 +169,67 @@
       opacity: 0.8;
     }
 
+    /* LOCK SCREEN */
+    #lockScreen{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: radial-gradient(800px circle at 50% 45%, rgba(245,195,64,0.08) 0%, #000 60%);
+      overflow: hidden;
+      z-index: 1000;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    
+    #lockScreen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(245,195,64,0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(245,195,64,0.03) 0%, transparent 50%);
+      animation: shimmer 8s ease-in-out infinite alternate;
+    }
+    
+    @keyframes shimmer {
+      0% { opacity: 0.3; }
+      100% { opacity: 0.8; }
+    }
+
+    .lockWrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:24px;
+      text-align:center;
+      z-index: 1;
+      position: relative;
+    }
+    
+    .hint{
+      color:var(--muted);
+      font-size:18px;
+      text-shadow: 0 0 10px rgba(245,195,64,0.3);
+      animation: pulse 2s ease-in-out infinite;
+      user-select: none;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    
+    .progressText{
+      font-variant-numeric:tabular-nums;
+      color:var(--gold);
+      font-size:24px;
+      font-weight:700;
+      text-shadow: 0 0 15px var(--ring);
+      min-height: 32px;
+      user-select: none;
+    }
+
     /* MAIN after unlock */
     main{
       max-width:980px;
@@ -155,9 +238,9 @@
       text-align:center;
       opacity:0;
       transform:translateY(20px);
-      transition:opacity .8s ease, transform .8s ease;
+      transition:opacity 1s ease, transform 1s ease;
     }
-    main.show{opacity:1;transform:none}
+    main.show{opacity:1;transform:translateY(0)}
 
     h1{
       font-size:clamp(28px,4vw,48px);
@@ -182,6 +265,7 @@
       align-items:center;
       box-shadow:0 0 40px var(--ring2), inset 0 1px 0 rgba(255,255,255,0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin: 24px 0;
     }
     
     .ca:hover {
@@ -261,9 +345,85 @@
     .success-pulse {
       animation: unlockSuccess 0.6s ease;
     }
+
+    /* About section */
+    .about {
+      background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+      border: 2px solid #2a2a2a;
+      border-radius: 20px;
+      padding: 32px;
+      margin: 40px 0;
+      box-shadow: 0 0 40px var(--ring2), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    .about h2 {
+      color: var(--gold);
+      font-size: 28px;
+      margin-bottom: 20px;
+      text-align: center;
+      text-shadow: 0 0 20px var(--ring2);
+    }
+
+    .about p {
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    /* CA Section Enhancement */
+    .ca-section {
+      margin: 40px 0;
+      text-align: center;
+    }
+
+    .ca-image {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(245,195,64,0.2);
+      margin-bottom: 24px;
+      border: 2px solid var(--ring2);
+    }
+
+    .cursor-image {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      animation: spin 3s linear infinite;
+      filter: drop-shadow(0 0 15px var(--ring));
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
+  <!-- Custom Cursor -->
+  <div id="cursor">
+    <svg viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id="cursorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#ffd86c"/>
+          <stop offset="100%" style="stop-color:#f5c340"/>
+        </linearGradient>
+      </defs>
+      <path d="M7 17L16.8995 7.10051C17.6805 6.31949 17.6805 5.08155 16.8995 4.30053C16.1185 3.51951 14.8805 3.51951 14.0995 4.30053L4.19999 14.2C3.4190 14.981 3.4190 16.2189 4.19999 17C4.98101 17.781 6.21895 17.781 7 17Z" fill="url(#cursorGrad)" stroke="#d4a017" stroke-width="1"/>
+      <circle cx="18" cy="6" r="3" fill="url(#cursorGrad)" stroke="#d4a017" stroke-width="0.8"/>
+      <circle cx="18" cy="6" r="1.5" fill="#1a1100" opacity="0.4"/>
+      <path d="M15 9L11 13" stroke="url(#cursorGrad)" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M11 11L9 13" stroke="url(#cursorGrad)" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M13 11L11 13" stroke="url(#cursorGrad)" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <!-- Particle Container -->
+  <div id="particleContainer"></div>
+
   <!-- LOCK ONLY VIEW -->
   <section id="lockScreen" aria-label="Unlock $GENKEY">
     <div class="lockWrap">
@@ -329,116 +489,205 @@
   <main id="main">
     <h1>$GENKEY — Key to Generational Wealth</h1>
     
-    <div class="ca">
-      <span class="badge">CA</span>
-      <code id="ca">So11111111111111111111111111111111111111112</code>
+    <div class="ca-section">
+      <img src="photos/cursor.png" alt="$GENKEY Cursor" class="cursor-image" />
+      <img src="1.png" alt="$GENKEY" class="ca-image" />
+      <div class="ca">
+        <span class="badge">CA</span>
+        <code id="ca">ca8j6M33foyaydSsbuQAgHet9JVtwfLga3RwnibD9Mpump</code>
+      </div>
     </div>
 
     <div class="links" id="links">
-      <a id="pump" href="#" target="_blank" rel="noopener">🔑 Pump.fun</a>
-      <a id="dex" href="#" target="_blank" rel="noopener">📈 Dexscreener</a>
-      <a id="x" href="#" target="_blank" rel="noopener">💬 Twitter / X</a>
+      <a id="pump" href="https://pump.fun/ca8j6M33foyaydSsbuQAgHet9JVtwfLga3RwnibD9Mpump" target="_blank" rel="noopener">🔑 Pump.fun</a>
+      <a id="dex" href="https://dexscreener.com/solana/ca8j6M33foyaydSsbuQAgHet9JVtwfLga3RwnibD9Mpump" target="_blank" rel="noopener">📈 Dexscreener</a>
+      <a id="x" href="https://x.com/i/communities/1961204247942381581" target="_blank" rel="noopener">💬 X Community</a>
+    </div>
+
+    <div class="about">
+      <h2>About $GENKEY</h2>
+      <p>$GENKEY is more than just a token—it's the key that unlocks the door to generational wealth. Built on the Solana blockchain, $GENKEY represents the future of decentralized finance and community-driven prosperity.</p>
+      <p>Join our community of forward-thinking investors who understand that true wealth isn't just earned, it's unlocked with the right key.</p>
     </div>
   </main>
 
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
   <script>
-    // ===== UNLOCK FLOW =====
-    const lock = document.getElementById('lock');
-    const ring = lock.querySelector('.ring');
-    const progText = document.getElementById('prog');
-    const lockScreen = document.getElementById('lockScreen');
-    const main = document.getElementById('main');
-    const shackle = lock.querySelector('.shackle');
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // ===== GLOBAL VARIABLES =====
+      let progress = 0; 
+      let isUnlocking = false; 
+      let isUnlocked = false;
 
-    let p = 0; 
-    let ticking = false; 
-    let unlocked = false;
+      // ===== CUSTOM CURSOR (Using PNG) =====
+      // Cursor is now handled by CSS with cursor.png file
 
-    function tick(){
-      if(p >= 100){
-        p = 100; 
-        ring.style.strokeDashoffset = 0; 
-        progText.textContent = '100%';
-        
-        // Add success animation
-        lock.classList.add('success-pulse');
-        
-        // Open shackle with enhanced animation
-        shackle.style.transform = 'translate(18px, -35px) rotate(-28deg)';
-        
-        // Reveal main content
-        setTimeout(() => {
-          lockScreen.style.opacity = '0';
-          lockScreen.style.transform = 'scale(0.95)';
-          setTimeout(() => {
-            lockScreen.style.display = 'none';
-            main.classList.add('show');
-            typeCA();
-          }, 400);
-        }, 600);
-        return;
-      }
-      
-      // Variable progress increments for more organic feel
-      const increment = Math.random() * 15 + 8;
-      p += increment;
-      if(p > 100) p = 100;
-      
-      ring.style.strokeDashoffset = 100 - p;
-      progText.textContent = Math.floor(p) + '%';
-      
-      // Variable timing for more dynamic feel
-      const nextDelay = Math.random() * 100 + 120;
-      setTimeout(tick, nextDelay);
-    }
-
-    lock.addEventListener('click', () => { 
-      if(!ticking && !unlocked){ 
-        ticking = true; 
-        lock.style.transform = 'scale(0.98)';
-        setTimeout(() => lock.style.transform = 'scale(1)', 100);
-        tick(); 
-      } 
-    });
-
-    // ===== TYPEWRITER for Contract Address =====
-    const caEl = document.getElementById('ca');
-    const targetCA = caEl.textContent.trim();
-
-    function typeCA(){
-      caEl.textContent = '';
-      let i = 0;
-      const typeInterval = setInterval(() => {
-        caEl.textContent += targetCA[i++];
-        if(i >= targetCA.length){
-          clearInterval(typeInterval);
-          // Add a subtle glow effect when typing is complete
-          caEl.parentElement.style.animation = 'unlockSuccess 0.5s ease';
-          revealLinks();
-        }
-      }, 25);
-    }
-
-    function revealLinks(){
-      const linkElements = [
-        document.getElementById('pump'), 
-        document.getElementById('dex'), 
-        document.getElementById('x')
-      ];
-      
-      linkElements.forEach((el, idx) => {
-        setTimeout(() => {
-          el.classList.add('show');
-        }, 400 + idx * 200);
+      // ===== MOUSE TRAIL =====
+      document.addEventListener('mousemove', (e) => {
+        // Create trail particles
+        createTrailParticle(e.clientX, e.clientY);
       });
-    }
 
-    // ===== CONFIGURATION =====
-    // Uncomment and modify these lines in browser console to customize:
-    // document.getElementById('ca').textContent = 'YOUR_CONTRACT_ADDRESS_HERE';
-    // document.getElementById('pump').href = 'https://pump.fun/YOUR_TOKEN';
-    // document.getElementById('dex').href = 'https://dexscreener.com/solana/YOUR_TOKEN';
-    // document.getElementById('x').href = 'https://x.com/your_handle';
+      function createTrailParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'trail-particle';
+        particle.style.left = (x - 4) + 'px';
+        particle.style.top = (y - 4) + 'px';
+        document.body.appendChild(particle);
+        
+        setTimeout(() => {
+          if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+          }
+        }, 1000);
+      }
+
+      // ===== FLOATING PARTICLES =====
+      const particleContainer = document.getElementById('particleContainer');
+      
+      function createFloatingParticle() {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * window.innerWidth + 'px';
+        particle.style.animationDelay = Math.random() * 8 + 's';
+        particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+        particleContainer.appendChild(particle);
+        
+        setTimeout(() => {
+          if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+          }
+        }, 12000);
+      }
+
+      // Create particles periodically
+      setInterval(createFloatingParticle, 800);
+
+      // ===== UNLOCK FLOW =====
+      const lock = document.getElementById('lock');
+      const ring = lock.querySelector('.ring');
+      const progText = document.getElementById('prog');
+      const lockScreen = document.getElementById('lockScreen');
+      const main = document.getElementById('main');
+      const shackle = lock.querySelector('.shackle');
+      const shackleInner = lock.querySelector('.shackleInner');
+
+      function updateProgress() {
+        if (progress >= 100) {
+          progress = 100;
+          ring.style.strokeDashoffset = '0';
+          progText.textContent = '100%';
+          
+          isUnlocked = true;
+          lock.classList.add('success-pulse');
+          
+          // Open shackle with enhanced animation
+          shackle.style.transform = 'translate(18px, -35px) rotate(-28deg)';
+          shackleInner.style.transform = 'translate(18px, -35px) rotate(-28deg)';
+          
+          setTimeout(() => {
+            lockScreen.style.opacity = '0';
+            lockScreen.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+              lockScreen.style.display = 'none';
+              main.classList.add('show');
+              
+              setTimeout(() => {
+                typeContractAddress();
+              }, 300);
+            }, 800);
+          }, 1000);
+          
+          return;
+        }
+        
+        const increment = Math.random() * 12 + 6;
+        progress += increment;
+        if (progress > 100) progress = 100;
+        
+        ring.style.strokeDashoffset = (100 - progress).toString();
+        progText.textContent = Math.floor(progress) + '%';
+        
+        const nextDelay = Math.random() * 80 + 60;
+        setTimeout(updateProgress, nextDelay);
+      }
+
+      // Lock click handler
+      lock.addEventListener('click', function() { 
+        if (!isUnlocking && !isUnlocked) { 
+          isUnlocking = true;
+          lock.classList.add('unlocking');
+          
+          // Visual feedback on click
+          lock.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            lock.style.transform = 'scale(1)';
+          }, 150);
+          
+          updateProgress(); 
+        } 
+      });
+
+      // Add some visual feedback when hovering over the lock
+      lock.addEventListener('mouseenter', function() {
+        if (!isUnlocking && !isUnlocked) {
+          ring.classList.add('loading-ring');
+        }
+      });
+
+      lock.addEventListener('mouseleave', function() {
+        if (!isUnlocking) {
+          ring.classList.remove('loading-ring');
+        }
+      });
+
+      // ===== TYPEWRITER for Contract Address =====
+      const caElement = document.getElementById('ca');
+      const targetAddress = caElement.textContent.trim();
+
+      function typeContractAddress() {
+        caElement.textContent = '';
+        let charIndex = 0;
+        
+        const typeInterval = setInterval(() => {
+          caElement.textContent += targetAddress[charIndex++];
+          
+          if (charIndex >= targetAddress.length) {
+            clearInterval(typeInterval);
+            
+            // Add completion effect
+            caElement.parentElement.style.animation = 'unlockSuccess 0.5s ease';
+            
+            setTimeout(() => {
+              revealLinks();
+            }, 200);
+          }
+        }, 40);
+      }
+
+      function revealLinks() {
+        const linkElements = [
+          document.getElementById('pump'), 
+          document.getElementById('dex'), 
+          document.getElementById('x')
+        ];
+        
+        linkElements.forEach((element, index) => {
+          setTimeout(() => {
+            element.classList.add('show');
+          }, 300 + (index * 200));
+        });
+      }
+
+      // Resize handler for responsive design
+      window.addEventListener('resize', () => {
+        // No specific resize handling needed for 2D SVG
+      });
+    });
   </script>
 </body>
 </html>
